@@ -15,5 +15,10 @@ public class AcessoService {
 		/* Validações */
 		return acessoRepository.save(acesso);
 	}
+	
+	public void delete(Acesso acesso) {
+		/* Validações */
+		acessoRepository.deleteById(acesso.getId());
+	}
 
 }
