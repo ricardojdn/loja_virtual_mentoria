@@ -6,10 +6,21 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mentoria.lojavirtual.controller.AcessoController;
 import com.mentoria.lojavirtual.model.Acesso;
+import com.mentoria.lojavirtual.model.PessoaJuridica;
 import com.mentoria.lojavirtual.repository.AcessoRepository;
+import com.mentoria.lojavirtual.service.AcessoService;
 
 import junit.framework.TestCase;
 
@@ -21,14 +32,123 @@ class LojaVirtualMentoriaApplicationTests extends TestCase {
 
 	@Autowired
 	private AcessoRepository acessoRepository;
+	
+	@Autowired
+	private WebApplicationContext wac;
+	
+	@Test
+	public void testRestApiCadastroAcesso() throws JsonProcessingException, Exception {
+		DefaultMockMvcBuilder builder = MockMvcBuilders.webAppContextSetup(this.wac);
+		MockMvc mockMvc = builder.build();
+		
+		Acesso acesso = new Acesso();
+		acesso.setDescricao("ROLE_COMPRADOR");
+		
+		ObjectMapper objectMapper =new ObjectMapper();
+		
+		
+		ResultActions retornoApi = mockMvc
+				.perform(MockMvcRequestBuilders.post("/salvarAcesso")
+				.content(objectMapper.writeValueAsString(acesso))
+				.accept(MediaType.APPLICATION_JSON)
+				.contentType(MediaType.APPLICATION_JSON)
+				);
+		System.out.println("Retorno da API: "+retornoApi.andReturn().getResponse().getContentAsString());
+		
+		Acesso objetoRetorno = objectMapper
+					.readValue(retornoApi.andReturn().getResponse().getContentAsString(), Acesso.class);
+		assertEquals(acesso.getDescricao(),objetoRetorno.getDescricao());
+	}
+	
+	@Test
+	public void testRestApiDeleteAcesso() throws JsonProcessingException, Exception {
+		DefaultMockMvcBuilder builder = MockMvcBuilders.webAppContextSetup(this.wac);
+		MockMvc mockMvc = builder.build();
+		
+		Acesso acesso = new Acesso();
+		acesso.setDescricao("ROLE_TESTE");
+		acesso= acessoRepository.save(acesso);
+		
+		ObjectMapper objectMapper =new ObjectMapper();
+		
+		
+		ResultActions retornoApi = mockMvc
+				.perform(MockMvcRequestBuilders.post("/deleteAcesso")
+				.content(objectMapper.writeValueAsString(acesso))
+				.accept(MediaType.APPLICATION_JSON)
+				.contentType(MediaType.APPLICATION_JSON)
+				);
+		System.out.println("Retorno da API: "+retornoApi.andReturn().getResponse().getContentAsString());
+
+		assertEquals("\"Acesso Removido\"", retornoApi.andReturn().getResponse().getContentAsString());
+		assertEquals(200, retornoApi.andReturn().getResponse().getStatus());
+	}
+	
+	@Test
+	public void testRestApiDeleteAcessoPorId() throws JsonProcessingException, Exception {
+		DefaultMockMvcBuilder builder = MockMvcBuilders.webAppContextSetup(this.wac);
+		MockMvc mockMvc = builder.build();
+		
+		Acesso acesso = new Acesso();
+		acesso.setDescricao("ROLE_TESTE_ID");
+		acesso= acessoRepository.save(acesso);
+		
+		ObjectMapper objectMapper =new ObjectMapper();
+		
+		
+		ResultActions retornoApi = mockMvc
+				.perform(MockMvcRequestBuilders.delete("/deleteAcessoPorId/"+acesso.getId())
+				.content(objectMapper.writeValueAsString(acesso))
+				.accept(MediaType.APPLICATION_JSON)
+				.contentType(MediaType.APPLICATION_JSON)
+				);
+		System.out.println("Retorno da API: "+retornoApi.andReturn().getResponse().getContentAsString());
+
+		assertEquals("\"Acesso Removido\"", retornoApi.andReturn().getResponse().getContentAsString());
+		assertEquals(200, retornoApi.andReturn().getResponse().getStatus());
+	}
+	
+	@Test
+	public void testRestApiObterAcessoPorId() throws JsonProcessingException, Exception {
+		DefaultMockMvcBuilder builder = MockMvcBuilders.webAppContextSetup(this.wac);
+		MockMvc mockMvc = builder.build();
+		
+		Acesso acesso = new Acesso();
+		acesso.setDescricao("ROLE_OBTER_ACESSO_ID");
+		acesso= acessoRepository.save(acesso);
+		
+		ObjectMapper objectMapper =new ObjectMapper();
+		
+		
+		ResultActions retornoApi = mockMvc
+				.perform(MockMvcRequestBuilders.get("/obterAcesso/"+acesso.getId())
+				.content(objectMapper.writeValueAsString(acesso))
+				.accept(MediaType.APPLICATION_JSON)
+				.contentType(MediaType.APPLICATION_JSON)
+				);
+		System.out.println("Retorno da API: "+retornoApi.andReturn().getResponse().getContentAsString());
+		
+		assertEquals(200, retornoApi.andReturn().getResponse().getStatus());
+		
+		Acesso objetoRetorno = objectMapper
+				.readValue(retornoApi.andReturn().getResponse().getContentAsString(), Acesso.class);
+	assertEquals(acesso.getDescricao(),objetoRetorno.getDescricao());
+	assertEquals(acesso.getId(),objetoRetorno.getId());
+
+	
+	}
 
 	@Test
 	public void TesteCadastraAcesso() {
 		String descacesso = "ROLE_ADMIN" + Calendar.getInstance().getTimeInMillis();
 
 		Acesso acesso = new Acesso();
+		PessoaJuridica empresa = new PessoaJuridica();
+		empresa.setId(1L);
+
 
 		acesso.setDescricao(descacesso);
+	
 
 		assertEquals(true, acesso.getId() == null);
 
@@ -61,6 +181,7 @@ class LojaVirtualMentoriaApplicationTests extends TestCase {
 		acesso = new Acesso();
 
 		acesso.setDescricao("ROLE_ALUNO");
+		
 
 		acesso = acessoController.salvarAcesso(acesso).getBody();
 

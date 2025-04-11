@@ -1,7 +1,5 @@
 package com.mentoria.lojavirtual.model;
 
-import java.util.Objects;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -12,6 +10,8 @@ import javax.persistence.Table;
 
 import org.springframework.security.core.GrantedAuthority;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 
 
 @Entity
@@ -20,17 +20,34 @@ import org.springframework.security.core.GrantedAuthority;
 public class Acesso implements GrantedAuthority {
 
 	private static final long serialVersionUID = 1L;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_acesso")
 	private Long id;
-	@Column(nullable = false)
-	private String descricao; // Ex: ROLE_XPTO
 
+	@Column(nullable = false)
+	private String descricao; /* Acesso ex: ROLE_ADMIN ou ROLE_SECRETARIO */
+	
+	
+/*	@ManyToOne(targetEntity = Pessoa.class)
+	@JoinColumn(name = "empresa_id", nullable = false, 
+	foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "empresa_id_fk"))
+	private PessoaJuridica empresa = new PessoaJuridica();
+*/
+	@JsonIgnore
 	@Override
 	public String getAuthority() {
-		// TODO Auto-generated method stub
 		return this.descricao;
 	}
+	
+	/*public void setEmpresa(PessoaJuridica empresa) {
+		this.empresa = empresa;
+	}
+	
+	public PessoaJuridica getEmpresa() {
+		return empresa;
+	}
+	*/
 
 	public Long getId() {
 		return id;
@@ -50,7 +67,10 @@ public class Acesso implements GrantedAuthority {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(descricao, id);
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		return result;
 	}
 
 	@Override
@@ -62,8 +82,12 @@ public class Acesso implements GrantedAuthority {
 		if (getClass() != obj.getClass())
 			return false;
 		Acesso other = (Acesso) obj;
-		return Objects.equals(descricao, other.descricao) && Objects.equals(id, other.id);
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		return true;
 	}
-	
 
 }
