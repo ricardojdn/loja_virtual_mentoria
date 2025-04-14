@@ -34,10 +34,23 @@ public abstract class Pessoa implements Serializable {
 
 	private String telefone;
 	
+	@Column
+	private String tipoPessoa;
+	
 	//orphanRemoval=true apagará os endereços ao apagar Pessoa
 	//fetch LAZY só fara o get dos endereços quando o método get for chamado e não no start
 	@OneToMany(mappedBy = "pessoa", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<Endereco> enderecos = new ArrayList<Endereco>();
+	
+	
+
+	public String getTipoPessoa() {
+		return tipoPessoa;
+	}
+
+	public void setTipoPessoa(String tipoPessoa) {
+		this.tipoPessoa = tipoPessoa;
+	}
 
 	@Override
 	public int hashCode() {
